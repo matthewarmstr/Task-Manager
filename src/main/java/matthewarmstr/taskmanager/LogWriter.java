@@ -26,7 +26,7 @@ public class LogWriter {
         return instance;
     }
 
-    public void processUserInputLine(String[] args) {
+    public void logUserInputLine(String[] args) {
         String taskName = args[1];
         String[] taskArgs = new String[args.length - 1];
         taskArgs[0] = args[0];
@@ -48,7 +48,7 @@ public class LogWriter {
             filewriter.write(output);
             filewriter.close();
         } catch (IOException exception){
-            System.out.println("Error occured writing to " + LOG_FILE);
+            System.out.println("Error occurred when writing to " + LOG_FILE);
         }
     }
 }

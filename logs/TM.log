@@ -1,0 +1,38 @@
+2023-12-07T21:06:36.969030300	task0	delete
+2023-12-07T21:08:53.421791900	downtime	stop
+2023-12-07T21:20:30.833823400	task1	size L
+2023-12-07T21:24:29.487139400	task1	size L
+2023-12-07T21:24:31.669048800	task1	size Ll
+2023-12-07T21:25:12.453223	task1	size M
+2023-12-07T21:41:39.711872100	sidework	start
+2023-12-07T21:41:51.449877900	sidework	size L
+2023-12-07T21:42:04.886972900	brainstorm	start
+2023-12-07T21:42:18.104213300	brainstorm	describe reviewed previous designs
+2023-12-07T21:42:26.636909900	brainstorm	describe and came up with a better one
+2023-12-07T21:43:04.499235800	brainstorm	stop
+2023-12-07T21:44:04.943353600	design0	start
+2023-12-07T21:44:16.685214400	design0	rename design1
+2023-12-07T21:44:42.778195800	design1	delete
+2023-12-07T21:52:23.037123200	implement	start
+2023-12-07T22:17:06.698782100	implement	describe The first behavior was (...) S
+2023-12-07T22:17:42.680057300	implement	describe and more items like (...) were added.
+2023-12-07T22:28:28.623105900	implement	describe Over time, (...) was also incorporated. L
+2023-12-07T22:29:40.081533200	task1	size S
+2023-12-08T10:10:12.291955500	configure	size L
+2023-12-08T10:32:56.856940200	debug	start
+2023-12-08T10:35:55.813296900	break	start
+2023-12-08T10:36:20.325007500	break	stop
+2023-12-08T10:36:30.194163100	break	stop
+2023-12-08T10:36:37.797144600	break	start
+2023-12-08T10:37:01.602902500	break	start
+2023-12-08T12:01:48.523143300	meetings	start
+2023-12-08T12:02:44.887914700	meetings	size M
+2023-12-08T12:42:18.590597700	meetings	describe discussed results with team
+2023-12-08T12:43:15.377694800	meetings	stop
+2023-12-08T12:43:41.142338300	meetings	size S
+2023-12-08T12:44:20.033390300	sidework	start
+2023-12-08T14:22:46.060492500	development	start
+2023-12-08T14:22:54.629726100	development	size XL
+2023-12-28T20:38:36.351155100	development	stop
+2023-12-30T13:59:28.242762200	task2	rename newTask
+2023-12-30T14:02:31.985513800	newTask	delete

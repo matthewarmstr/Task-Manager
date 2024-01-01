@@ -7,14 +7,8 @@ public class Task {
     public String name = "";
     public String size = "";
     public String description = "";
-    public LocalDateTime startTime;
     public long timeElapsed = 0;
-
-    private long calculateElapsedTime(String stopTimestamp) {
-        // Calculate time between start and stop timestamps
-        LocalDateTime stopTime = LocalDateTime.parse(stopTimestamp);
-        return startTime.until(stopTime, ChronoUnit.MICROS);
-    }
+    private LocalDateTime startTime;
 
     public Task(String name) {
         this.name = name;
@@ -25,6 +19,17 @@ public class Task {
     }
 
     public void stop(String stopTimestamp) {
-        timeElapsed += calculateElapsedTime(stopTimestamp);
+        timeElapsed += calculateElapsedTime(LocalDateTime.parse(stopTimestamp));
+    }
+
+    public void forceTimeUpdate() {
+        LocalDateTime timeNow = LocalDateTime.now();
+        timeElapsed += calculateElapsedTime(timeNow);
+        startTime = timeNow;
+    }
+
+    private long calculateElapsedTime(LocalDateTime stopTimestamp) {
+        // Calculate time between start and stop timestamps
+        return startTime.until(stopTimestamp, ChronoUnit.MICROS);
     }
 }

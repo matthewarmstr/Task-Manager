@@ -1,11 +1,14 @@
 package matthewarmstr.taskmanager;
 
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Stream;
 
 public class Summarizer {
-    /* Methods required for the writer to be singleton */
     private static Summarizer instance;
-    private static TaskBuilder taskbuilder = TaskBuilder.getInstance();
+    private static final TaskBuilder taskbuilder = TaskBuilder.getInstance();
 
     public static Summarizer getInstance() {
         if (instance == null) {
@@ -14,141 +17,104 @@ public class Summarizer {
         return instance;
     }
 
-    public void selectSummaryType(String[] args) throws UsageException {
-        ArrayList<Task> taskList = taskbuilder.buildTasks();
-
-        // Check if general summary requested
-        if (args.length == 1) {
-            // Complete general summary
-            summarizeAllTasks(taskList);
-        } else if (getTask(taskList, args[1]) != null) {
-            // Provide summary of specified task if its in task list
-            summarizeSingleTask(getTask(taskList, args[1]));
-
-        } else if (UsageChecker.isValidSize(args[1])) {
-            // Summarize tasks of specified size
-            summarizeTasksBySingleSize(taskList, args[1]);
+    public void selectSummaryType(String[] userArgs) throws MalformedInputException{
+        List<Task> tasks = taskbuilder.buildTasks();
+        if (userArgs.length == 1) {
+            // General summary of all tasks requested
+            generateMultipleTaskSummary(tasks, List.of("", "S", "M", "L", "XL"));
+        } else if (UsageChecker.isValidSize(userArgs[1])) {
+            // Summary for valid size was requested
+            generateMultipleTaskSummary(tasks, List.of(userArgs[1]));
         } else {
-            throw new UsageException();
+            Task taskToSummarize = getTask(tasks, userArgs[1]);
+            if (taskToSummarize != null) {
+                // Summary of specific task in list was requested
+                printSummaryForSingleTask(taskToSummarize);
+            }
         }
     }
 
-    private Task getTask(ArrayList<Task> tasks, String taskNameToFind) {
+    private Task getTask(List<Task> tasks, String taskNameToFind) {
+        // Get task from list of tasks with matching name
         for (Task task : tasks) {
-            if (task.name.equals(taskNameToFind)) {
-                return task;
-            }
+            if (task.name.equals(taskNameToFind)) { return task; }
         }
         return null;
     }
 
-    private void summarizeSingleTask(Task task) {
+    private void printSummaryForSingleTask(Task task) {
         System.out.println("Summary for task\t: " + task.name);
         System.out.println("Size of task\t\t: " + task.size);
-        System.out.println("Description\t\t: " + task.description);
-        System.out.println("Total Time on task\t: "
-                + convertTimeToFormat(task.timeElapsed));
+        System.out.println("Description\t\t\t: " + task.description);
+        System.out.println("Total Time on task\t: " + convertTimeToFormat(task.timeElapsed));
         System.out.println();
     }
 
-    private void summarizeAllTasks(ArrayList<Task> tasks) {
-        for (Task task : tasks) {
-            summarizeSingleTask(task);
-        }
+    private void generateMultipleTaskSummary(List<Task> tasks, List<String> sizesToSummarize) {
+        // Create collection of tasks to display in summary
+        List<Task> tasksToSummarize = tasks.stream().filter(task -> sizesToSummarize.contains(task.size))
+                                                    .toList();
 
-        if (tasks.size() > 0) {
-            // Print total time (FORMAT: HH:MM:SS)
-            System.out.println("Total time spent on all tasks: " + displayTotalTaskTime(tasks));
-            System.out.println();
-        }
+        // Print summaries for all these tasks, along with total time across summarized tasks
+        for (Task task : tasksToSummarize) { printSummaryForSingleTask(task); }
+        if (tasksToSummarize.size() > 1) { System.out.println("Total time spent on displayed tasks: " + totalTaskTimeString(tasksToSummarize.stream()) + "\n"); }
 
-        // Collect and print statistics on tasks within sizing groups
-        for (String validSize : new String[]{"S", "M", "L", "XL"}) {
-            ArrayList<Task> tasksOfSameSize = new ArrayList<Task>();
-            for (Task task : tasks) {
-                if (task.size.equals(validSize)) {
-                    tasksOfSameSize.add(task);
-                }
+        // Collect statistics for tasks within each sizing group
+        for (String currentSize : sizesToSummarize) {
+            ArrayList<Task> tasksOfSameSize = new ArrayList<>();
+            for (Task task : tasksToSummarize) {
+                if (task.size.equals(currentSize)) { tasksOfSameSize.add(task); }
             }
-            printSizeStats(tasksOfSameSize);
+            printSizeStats(tasksOfSameSize, currentSize);
         }
     }
 
-    private void summarizeTasksBySingleSize(ArrayList<Task> tasks, String size) {
-        ArrayList<Task> tasksOfSameSize = new ArrayList<Task>();
-        for (Task task : tasks) {
-            if (task.size.equals(size)) {
-                tasksOfSameSize.add(task);
-                summarizeSingleTask(task);
-            }
-        }
-        printSizeStats(tasksOfSameSize);
-    }
-
-    private void printSizeStats(ArrayList<Task> tasksOfSameSize) {
-        // Print additional statistics for tasks of grouped size as long as
-        // there is more than one such task
+    private void printSizeStats(ArrayList<Task> tasksOfSameSize, String taskSize) {
+        // Print additional statistics for sizing groups with more than one task
         if (tasksOfSameSize.size() > 1) {
-            String size = tasksOfSameSize.get(0).size;
-            System.out.println("Statistics for size\t| " + size);
-            System.out.println("Total time\t\t| "
-                    + displayTotalTaskTime(tasksOfSameSize));
-            System.out.println("Min time\t\t| "
-                    + displayMinTaskTime(tasksOfSameSize));
-            System.out.println("Max time\t\t| "
-                    + displayMaxTaskTime(tasksOfSameSize));
-            System.out.println("Average time\t\t| "
-                    + displayAverageTaskTime(tasksOfSameSize));
+            String taskSizeToPrint = taskSize;
+            if (taskSize.isEmpty()) { taskSizeToPrint = "(empty)"; }
+            System.out.println("Statistics for size\t| " + taskSizeToPrint);
+            System.out.println("Total time\t\t\t| " + totalTaskTimeString(tasksOfSameSize.stream()));
+            System.out.println("Min time\t\t\t| " + minTaskTimeString(tasksOfSameSize.stream()));
+            System.out.println("Max time\t\t\t| " + maxTaskTimeString(tasksOfSameSize.stream()));
+            System.out.println("Average time\t\t| " + averageTaskTimeString(tasksOfSameSize.stream(), tasksOfSameSize.size()));
             System.out.println();
         }
     }
 
-    private long getTotalTaskTime(ArrayList<Task> tasks) {
-        long totalTime = 0;
-        for (Task task : tasks) {
-            totalTime += task.timeElapsed;
-        }
-        return totalTime;
-    }
-
-    private long getMinTaskTime(ArrayList<Task> tasks) {
-        long minTime = tasks.get(0).timeElapsed;
-        for (Task task : tasks) {
-            if (task.timeElapsed < minTime) {
-                minTime = task.timeElapsed;
-            }
-        }
-        return minTime;
-    }
-
-    private long getMaxTaskTime(ArrayList<Task> tasks) {
-        long maxTime = tasks.get(0).timeElapsed;
-        for (Task task : tasks) {
-            if (task.timeElapsed > maxTime) {
-                maxTime = task.timeElapsed;
-            }
-        }
-        return maxTime;
-    }
-
-    private long getAverageTime(ArrayList<Task> tasks) {
-        return getTotalTaskTime(tasks) / tasks.size();
-    }
-
-    private String displayTotalTaskTime(ArrayList<Task> tasks) {
+    private String totalTaskTimeString(Stream<Task> tasks) {
         return convertTimeToFormat(getTotalTaskTime(tasks));
     }
 
-    private String displayMinTaskTime(ArrayList<Task> tasks) {
+    private String minTaskTimeString(Stream<Task> tasks) {
         return convertTimeToFormat(getMinTaskTime(tasks));
     }
 
-    private String displayMaxTaskTime(ArrayList<Task> tasks) {
+    private String maxTaskTimeString(Stream<Task> tasks) {
         return convertTimeToFormat(getMaxTaskTime(tasks));
     }
 
-    private String displayAverageTaskTime(ArrayList<Task> tasks) {
-        return convertTimeToFormat(getAverageTime(tasks));
+    private String averageTaskTimeString(Stream<Task> tasks, long numTasks) {
+        return convertTimeToFormat(getAverageTime(tasks, numTasks));
+    }
+
+    private long getTotalTaskTime(Stream<Task> tasks) {
+        return tasks.mapToLong(task -> task.timeElapsed).sum();
+    }
+
+    private long getMinTaskTime(Stream<Task> tasks) {
+        Optional<Task> taskWithMinTime = tasks.min(Comparator.comparingLong(task -> task.timeElapsed));
+        return taskWithMinTime.map(task -> task.timeElapsed).orElse(0L);
+    }
+
+    private long getMaxTaskTime(Stream<Task> tasks) {
+        Optional<Task> taskWithMaxTime = tasks.max(Comparator.comparingLong(task -> task.timeElapsed));
+        return taskWithMaxTime.map(task -> task.timeElapsed).orElse(0L);
+    }
+
+    private long getAverageTime(Stream<Task> tasks, long numTasks) {
+        return getTotalTaskTime(tasks) / numTasks;
     }
 
     private String convertTimeToFormat(long microseconds) {

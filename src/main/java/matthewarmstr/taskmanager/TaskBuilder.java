@@ -1,7 +1,7 @@
 package matthewarmstr.taskmanager;
 
-import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 
 public class TaskBuilder {
     LogReader logReader = LogReader.getInstance();
@@ -11,7 +11,7 @@ public class TaskBuilder {
     private static TaskBuilder instance;
 
     private ArrayList<Task> taskList;
-    private String runningTask = null;
+    private String runningTaskName = null;
 
     public static TaskBuilder getInstance() {
         if (instance == null) {
@@ -20,25 +20,66 @@ public class TaskBuilder {
         return instance;
     }
 
-    public ArrayList<Task> buildTasks() {
-        taskList = new ArrayList<Task>();
-        ArrayList<String[]> listOfLogLines = new ArrayList<String[]>();
+    public List<Task> buildTasks() {
+        // Prepare new task list
+        taskList = new ArrayList<>();
 
         // Read lines from log file
-        try {
-            listOfLogLines = logReader.readLog();
-        } catch (IOException e) { }
+        List<String[]> listOfLogLines = logReader.readAllLinesFromLog();
 
-        // Convert user's input (log lines) into tasks
+        // Convert log lines into equivalent tasks
         processAllLogLines(listOfLogLines);
 
-        // If task is still running after all of log has been read, forcefully stop it
-        // to allow start time to be compared with current time during execution
-        if (runningTask != null) {
-            stopTask(runningTask, java.time.LocalDateTime.now() + "");
+        // If task is still running after the entire log has been read, force update the time appropriately
+        if (runningTaskName != null && getTask(runningTaskName) != null) {
+            getTask(runningTaskName).forceTimeUpdate();
+            runningTaskName = null;
         }
 
         return taskList;
+    }
+
+    private void processAllLogLines(List<String[]> lines) {
+        int lineNum = 1;
+        for (String[] line : lines) {
+            processLogLine(line, lineNum);
+            lineNum++;
+        }
+    }
+
+    private void processLogLine(String[] line, int lineNum) {
+        String timestamp = line[0];
+        String taskName = line[1];
+        String[] actionArgs = line[2].split(" ");
+        String userAction = actionArgs[0];
+
+        // Parse line from log file and update tasks accordingly
+        if (userAction.equals("start")) {
+            createTaskIfNotInList(taskName);
+            startTask(taskName, timestamp);
+        } else if (userAction.equals("stop")) {
+            stopTask(taskName, timestamp);
+        } else if (userAction.equals("describe")) {
+            createTaskIfNotInList(taskName);
+            updateDescription(getTask(taskName), actionArgs);
+        } else if (userAction.equals("size")) {
+            createTaskIfNotInList(taskName);
+            getTask(taskName).size = actionArgs[1];
+        } else if (userAction.equals("rename")) {
+            if (taskName.equals(runningTaskName)) {
+                runningTaskName = actionArgs[1];
+            }
+            if (getTask(taskName) != null) {
+                getTask(taskName).name = actionArgs[1];
+            }
+        } else if (userAction.equals("delete")) {
+            if (taskName.equals(runningTaskName)) {
+                runningTaskName = null;
+            }
+            deleteTask(taskName);
+        } else {
+            System.err.println("Line " + lineNum + " of " + LOG_FILE + " is malformed");
+        }
     }
 
     private Task getTask(String taskName) {
@@ -50,10 +91,13 @@ public class TaskBuilder {
         return null;
     }
 
-    private void createTask(String taskName) {
+    private void createTaskIfNotInList(String taskName) {
+        // Check if task already exists
         for (Task task : taskList) {
-            if(task.name.equals(taskName))  { return; }
+            if (task.name.equals(taskName))  { return; }
         }
+
+        // Create new task object if not already stored in collection
         Task newTask = new Task(taskName);
         taskList.add(newTask);
     }
@@ -61,86 +105,46 @@ public class TaskBuilder {
     private void deleteTask(String taskName) {
         for (int index = 0; index < taskList.size(); index++) {
             String nameAtIndex = taskList.get(index).name;
-            if(nameAtIndex.equals(taskName)) {
+            if (nameAtIndex.equals(taskName)) {
                 taskList.remove(index);
             }
         }
     }
 
     private void startTask(String taskName, String timestamp) {
-        if (runningTask != null) {
-            getTask(runningTask).stop(timestamp);
+        // Check if a task is already running
+        if (runningTaskName != null && getTask(runningTaskName) != null) {
+            getTask(runningTaskName).stop(timestamp);
         }
+
+        // Start the appropriate task from the collection
         getTask(taskName).start(timestamp);
-        runningTask = taskName;
+        runningTaskName = taskName;
     }
 
     private void stopTask(String taskName, String timestamp) {
-        if (taskName.equals(runningTask)) {
+        if (taskName.equals(runningTaskName)) {
             getTask(taskName).stop(timestamp);
-            runningTask = null;
-        }
-    }
-
-    private void processLogLine(String[] lineArgs, int lineNum) {
-        String timestamp = lineArgs[0];
-        String taskName = lineArgs[1];
-        String[] actionArgs = lineArgs[2].split(" ");
-        String userAction = actionArgs[0];
-
-        // Parse line from log file and update tasks accordingly
-        if (userAction.equals("start")) {
-            createTask(taskName);
-            startTask(taskName, timestamp);
-        } else if (userAction.equals("stop")) {
-            stopTask(taskName, timestamp);
-        } else if (userAction.equals("describe")) {
-            createTask(taskName);
-            updateDescription(getTask(taskName), actionArgs);
-        } else if (userAction.equals("size")) {
-            createTask(taskName);
-            getTask(taskName).size = actionArgs[1];
-        } else if (userAction.equals("rename")) {
-            if (taskName.equals(runningTask)) {
-                runningTask = actionArgs[1];
-            }
-            if (getTask(taskName) != null) {
-                getTask(taskName).name = actionArgs[1];
-            }
-        } else if (userAction.equals("delete")) {
-            if (taskName.equals(runningTask)) { runningTask = null; }
-            deleteTask(taskName);
-        } else {
-            System.out.println("Line " + Integer.toString(lineNum) + " of " + LOG_FILE + " is malformed");
-        }
-    }
-
-    private void processAllLogLines(ArrayList<String[]> lines) {
-        int lineNum = 1;
-        for (String[] line : lines) {
-            processLogLine(line, lineNum);
-            lineNum++;
+            runningTaskName = null;
         }
     }
 
     private void updateDescription(Task task, String[] actionArgs) {
-        int argslength = actionArgs.length;
+        int actionArgsLength = actionArgs.length;
 
-        // Handle the case where the last token is a valid size
-        if (UsageChecker.isValidSize(actionArgs[argslength - 1])) {
-            task.size = actionArgs[argslength - 1];
-            actionArgs[argslength - 1] = "";
+        // Handle case where user wants to give the task a size when describing it
+        if (UsageChecker.isValidSize(actionArgs[actionArgsLength - 1])) {
+            task.size = actionArgs[actionArgsLength - 1];
+            actionArgs[actionArgsLength - 1] = "";
         }
 
         // Extract the action
         String[] descriptionArgs = new String[actionArgs.length - 1];
-        for (int i = 1; i < actionArgs.length; i++) {
-            descriptionArgs[i-1] = actionArgs[i];
-        }
+        System.arraycopy(actionArgs, 1, descriptionArgs, 0, actionArgs.length - 1);
 
         // Store updated task description
         String newDescription;
-        if(actionArgs[argslength - 1].equals("")) {
+        if(actionArgs[actionArgsLength - 1].isEmpty()) {
             // If a size was removed from the description, leave the space
             // that separated the size from the rest of the description
             newDescription = task.description

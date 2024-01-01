@@ -8,19 +8,9 @@ import java.util.ArrayList;
 public class LogReader {
     private static final String LOG_FILE = "./logs/TM.log";
 
-    /* Methods required for the reader to be singleton */
     private static LogReader instance;
-    private FileReader fileReader;
 
     private BufferedReader bufferedReader;
-
-    public LogReader() {
-        // Open log file if it exists
-        try {
-            fileReader = new FileReader(LOG_FILE);
-            bufferedReader = new BufferedReader(fileReader);
-        } catch (IOException e) {}
-    }
 
     public static LogReader getInstance() {
         if (instance == null) {
@@ -29,9 +19,10 @@ public class LogReader {
         return instance;
     }
 
-    public ArrayList<String[]> readLog() throws IOException{
-        ArrayList<String[]> listOfLogLines = new ArrayList<String[]>();
+    public ArrayList<String[]> readAllLinesFromLog() {
+        ArrayList<String[]> listOfLogLines = new ArrayList<>();
         String line;
+        prepareLogReader();
         try {
             while ((line = bufferedReader.readLine()) != null) {
                 // Store all lines from log
@@ -42,5 +33,15 @@ public class LogReader {
             System.out.println("Error reading " + LOG_FILE);
         }
         return listOfLogLines;
+    }
+
+    private void prepareLogReader() {
+        // Open log file if it exists and always start reading from the top
+        try {
+            FileReader fileReader = new FileReader(LOG_FILE);
+            bufferedReader = new BufferedReader(fileReader);
+        } catch (IOException e) {
+            System.out.println("Error occurred when preparing to read " + LOG_FILE);
+        }
     }
 }
