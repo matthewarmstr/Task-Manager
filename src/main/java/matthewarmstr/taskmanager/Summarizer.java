@@ -17,20 +17,19 @@ public class Summarizer {
         return instance;
     }
 
-    public void selectSummaryType(String[] userArgs) throws MalformedInputException{
+    public void selectSummaryType(String[] userArgs) throws SummaryException {
         List<Task> tasks = taskbuilder.buildTasks();
         if (userArgs.length == 1) {
             // General summary of all tasks requested
             generateMultipleTaskSummary(tasks, List.of("", "S", "M", "L", "XL"));
+        } else if (getTask(tasks, userArgs[1]) != null) {
+            // Summary of specific task in list was requested
+            printSummaryForSingleTask(getTask(tasks, userArgs[1]));
         } else if (UsageChecker.isValidSize(userArgs[1])) {
             // Summary for valid size was requested
             generateMultipleTaskSummary(tasks, List.of(userArgs[1]));
         } else {
-            Task taskToSummarize = getTask(tasks, userArgs[1]);
-            if (taskToSummarize != null) {
-                // Summary of specific task in list was requested
-                printSummaryForSingleTask(taskToSummarize);
-            }
+            throw new SummaryException("'" + userArgs[1] + "' is not a name for a task, and is not a valid size.");
         }
     }
 
@@ -69,7 +68,7 @@ public class Summarizer {
         }
     }
 
-    private void printSizeStats(ArrayList<Task> tasksOfSameSize, String taskSize) {
+    private void printSizeStats(List<Task> tasksOfSameSize, String taskSize) {
         // Print additional statistics for sizing groups with more than one task
         if (tasksOfSameSize.size() > 1) {
             String taskSizeToPrint = taskSize;

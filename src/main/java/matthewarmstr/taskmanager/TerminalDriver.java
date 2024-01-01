@@ -20,11 +20,13 @@ public class TerminalDriver {
         System.out.print(">> ");
         String userInputLine = scanner.nextLine();
         if (userInputLine.equals("exit")) { return false; }
+        if (userInputLine.isEmpty()) { return true; }
 
         // Scan command line and check that input is formatted correctly
         String[] userArgs = userInputLine.split(" ");
         try {
             UsageChecker.checkCorrectUsage(userArgs);
+
             if (userArgs[0].equals("summary")){
                 // Create and print appropriate summary
                 summarizer.selectSummaryType(userArgs);
@@ -33,6 +35,8 @@ public class TerminalDriver {
                 logWriter.logUserInputLine(userArgs);
             }
         } catch (MalformedInputException e) { System.out.println(e.message); }
+        catch (SummaryException e) { System.out.println(e.message); }
+
         return true;
     }
 }
