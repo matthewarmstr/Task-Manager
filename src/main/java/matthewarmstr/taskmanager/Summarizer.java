@@ -42,10 +42,10 @@ public class Summarizer {
     }
 
     private void printSummaryForSingleTask(Task task) {
-        System.out.println("Summary for task\t: " + task.name);
-        System.out.println("Size of task\t\t: " + task.size);
-        System.out.println("Description\t\t\t: " + task.description);
-        System.out.println("Total Time on task\t: " + convertTimeToFormat(task.timeElapsed));
+        System.out.println("Summary for task     : " + task.name);
+        System.out.println("Size of task         : " + task.size);
+        System.out.println("Description          : " + task.description);
+        System.out.println("Total Time on task   : " + convertTimeToFormat(task.timeElapsed));
         System.out.println();
     }
 
@@ -73,11 +73,11 @@ public class Summarizer {
         if (tasksOfSameSize.size() > 1) {
             String taskSizeToPrint = taskSize;
             if (taskSize.isEmpty()) { taskSizeToPrint = "(empty)"; }
-            System.out.println("Statistics for size\t| " + taskSizeToPrint);
-            System.out.println("Total time\t\t\t| " + totalTaskTimeString(tasksOfSameSize.stream()));
-            System.out.println("Min time\t\t\t| " + minTaskTimeString(tasksOfSameSize.stream()));
-            System.out.println("Max time\t\t\t| " + maxTaskTimeString(tasksOfSameSize.stream()));
-            System.out.println("Average time\t\t| " + averageTaskTimeString(tasksOfSameSize.stream(), tasksOfSameSize.size()));
+            System.out.println("Statistics for size  | " + taskSizeToPrint);
+            System.out.println("Total time           | " + totalTaskTimeString(tasksOfSameSize.stream()));
+            System.out.println("Min time             | " + minTaskTimeString(tasksOfSameSize.stream()));
+            System.out.println("Max time             | " + maxTaskTimeString(tasksOfSameSize.stream()));
+            System.out.println("Average time         | " + averageTaskTimeString(tasksOfSameSize.stream(), tasksOfSameSize.size()));
             System.out.println();
         }
     }
