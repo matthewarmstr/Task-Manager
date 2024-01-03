@@ -54,31 +54,35 @@ public class TaskBuilder {
         String userAction = actionArgs[0];
 
         // Parse line from log file and update tasks accordingly
-        if (userAction.equals("start")) {
-            createTaskIfNotInList(taskName);
-            startTask(taskName, timestamp);
-        } else if (userAction.equals("stop")) {
-            stopTask(taskName, timestamp);
-        } else if (userAction.equals("describe")) {
-            createTaskIfNotInList(taskName);
-            updateDescription(getTask(taskName), actionArgs);
-        } else if (userAction.equals("size")) {
-            createTaskIfNotInList(taskName);
-            getTask(taskName).size = actionArgs[1];
-        } else if (userAction.equals("rename")) {
-            if (taskName.equals(runningTaskName)) {
-                runningTaskName = actionArgs[1];
+        switch (userAction) {
+            case "start" -> {
+                createTaskIfNotInList(taskName);
+                startTask(taskName, timestamp);
             }
-            if (getTask(taskName) != null) {
-                getTask(taskName).name = actionArgs[1];
+            case "stop" -> stopTask(taskName, timestamp);
+            case "describe" -> {
+                createTaskIfNotInList(taskName);
+                updateDescription(getTask(taskName), actionArgs);
             }
-        } else if (userAction.equals("delete")) {
-            if (taskName.equals(runningTaskName)) {
-                runningTaskName = null;
+            case "size" -> {
+                createTaskIfNotInList(taskName);
+                getTask(taskName).size = Size.valueOf(actionArgs[1]);
             }
-            deleteTask(taskName);
-        } else {
-            System.err.println("Line " + lineNum + " of " + LOG_FILE + " is malformed");
+            case "rename" -> {
+                if (taskName.equals(runningTaskName)) {
+                    runningTaskName = actionArgs[1];
+                }
+                if (getTask(taskName) != null) {
+                    getTask(taskName).name = actionArgs[1];
+                }
+            }
+            case "delete" -> {
+                if (taskName.equals(runningTaskName)) {
+                    runningTaskName = null;
+                }
+                deleteTask(taskName);
+            }
+            default -> System.err.println("Line " + lineNum + " of " + LOG_FILE + " is malformed");
         }
     }
 
@@ -103,12 +107,7 @@ public class TaskBuilder {
     }
 
     private void deleteTask(String taskName) {
-        for (int index = 0; index < taskList.size(); index++) {
-            String nameAtIndex = taskList.get(index).name;
-            if (nameAtIndex.equals(taskName)) {
-                taskList.remove(index);
-            }
-        }
+        taskList.removeIf(task -> task.name.equals(taskName));
     }
 
     private void startTask(String taskName, String timestamp) {
@@ -134,7 +133,7 @@ public class TaskBuilder {
 
         // Handle case where user wants to give the task a size when describing it
         if (UsageChecker.isValidSize(actionArgs[actionArgsLength - 1])) {
-            task.size = actionArgs[actionArgsLength - 1];
+            task.size = Size.valueOf(actionArgs[actionArgsLength - 1]);
             actionArgs[actionArgsLength - 1] = "";
         }
 

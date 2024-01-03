@@ -5,7 +5,7 @@ import java.time.temporal.ChronoUnit;
 
 public class Task {
     public String name = "";
-    public String size = "";
+    public Size size = Size.NONE;
     public String description = "";
     public long timeElapsed = 0;
     private LocalDateTime startTime;
