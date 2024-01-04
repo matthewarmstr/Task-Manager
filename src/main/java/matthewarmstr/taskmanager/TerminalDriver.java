@@ -70,7 +70,7 @@ public class TerminalDriver {
     private String getSortingOptionsString() {
         return """
             Select sorting method from these options (up --> ascending, down --> descending):
-              name {up|down}    | "Sort by task name alphabetically"
+              name {up|down}    | "Sort by task name alphabetically (uppercase letters sequenced before lowercase letters in ascending order)"
               size {up|down}    | "Sort by task size"
               time {up|down}    | "Sort by time elapsed on each task\"""";
     }

@@ -26,12 +26,12 @@ summary {S|M|L|XL}                  | "Summarize all tasks of a specific size"
 
 When there is more than one task included in the summary, the user can choose to have these tasks displayed in either ascending or descending order by their name (alphabetically), size (S, M, etc.), or time elapsed. These commands include:
 ~~~
-name up                             | "Sort by task name alphabetically in ascending order" (a --> Z)
-name down                           | "Sort by task name alphabetically in descending order" (Z --> a)
+name up                             | "Sort by task name alphabetically in ascending order" (A --> Z, a --> z)
+name down                           | "Sort by task name alphabetically in descending order" (z --> a, Z --> A)
 size up                             | "Sort by task size in ascending order" (S --> XL)
 size down                           | "Sort by task size in descending order" (XL --> S)
-time up                             | "Sort by time elapsed on each task in ascending order" (lowest times first)
-time down                           | "Sort by time elapsed on each task in descending order" (highest times first)
+time up                             | "Sort by time elapsed on each task in ascending order" (lowest times printed first)
+time down                           | "Sort by time elapsed on each task in descending order" (highest times printed first)
 ~~~
 
 Finally, when the summary includes more than one task with the same size, the minimum, maximum, total, and average elapsed times of the summarized tasks within each size category are computed and displayed.
