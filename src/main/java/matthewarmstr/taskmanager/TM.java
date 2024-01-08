@@ -5,10 +5,7 @@ public class TM {
         TerminalDriver terminal = TerminalDriver.getInstance();
 
         printWelcomeMessage();
-        boolean running = true;
-        while (running) {
-            running = terminal.processUserCommandLine();
-        }
+        terminal.processUserCommands();
     }
 
     private static void printWelcomeMessage() {

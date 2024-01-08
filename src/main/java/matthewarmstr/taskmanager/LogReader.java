@@ -1,16 +1,16 @@
 package matthewarmstr.taskmanager;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 
 public class LogReader {
-    private static final String LOG_FILE = "./logs/TM.log";
+    private static final String LOG_DIR = "logs";
+    private static final String LOG_FILE = "logs/TM.log";
 
     private static LogReader instance;
-
-    private BufferedReader bufferedReader;
 
     public static LogReader getInstance() {
         if (instance == null) {
@@ -21,27 +21,35 @@ public class LogReader {
 
     public ArrayList<String[]> readAllLinesFromLog() {
         ArrayList<String[]> listOfLogLines = new ArrayList<>();
-        String line;
-        prepareLogReader();
+
         try {
-            while ((line = bufferedReader.readLine()) != null) {
+            String line;
+            createLogAndDirIfNeeded();
+            BufferedReader buffReader = Files.newBufferedReader(Paths.get(LOG_FILE));
+
+            while ((line = buffReader.readLine()) != null) {
                 // Store all lines from log
                 String[] lineArgs = line.split("\t");
                 listOfLogLines.add(lineArgs);
             }
         } catch (IOException e) {
-            System.out.println("Error reading " + LOG_FILE);
+            System.out.println("Error in reading buffered reader");
         }
+
         return listOfLogLines;
     }
 
-    private void prepareLogReader() {
-        // Open log file if it exists and always start reading from the top
-        try {
-            FileReader fileReader = new FileReader(LOG_FILE);
-            bufferedReader = new BufferedReader(fileReader);
-        } catch (IOException e) {
-            System.out.println("Error occurred when preparing to read " + LOG_FILE);
+    private void createLogAndDirIfNeeded() throws IOException {
+        // Create log directory if it doesn't exist
+        Path logDirPath = Paths.get(LOG_DIR);
+        if (!Files.exists(logDirPath)) {
+            Files.createDirectory(logDirPath);
+        }
+
+        // Create log file if it doesn't exist
+        File logFile = new File(LOG_FILE);
+        if (!logFile.exists()) {
+            logFile.createNewFile();
         }
     }
 }

@@ -16,7 +16,14 @@ public class TerminalDriver {
         return instance;
     }
 
-    public boolean processUserCommandLine() {
+    public void processUserCommands() {
+        boolean running = true;
+        while (running) {
+            running = processUserCommandLine();
+        }
+    }
+
+    private boolean processUserCommandLine() {
         String userInputLine = collectInputString();
         if (userInputLine.equals("exit")) { return false; }
         if (userInputLine.isEmpty()) { return true; }
